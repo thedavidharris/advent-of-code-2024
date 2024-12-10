@@ -1,49 +1,49 @@
 #!/usr/bin/env python3
 
 from aocd import get_data, submit
-from collections import defaultdict
 
-data = get_data(day=6, year=2024)
-# data = open("test.txt").read()
+data = get_data(day=6, year=2024).splitlines()
 
-data = data.splitlines()
-
-# Default value is None, indicating out of bounds
 grid = {}
-start = None
+start_position = None
 
 for i, row in enumerate(data):
     for j, cell in enumerate(row):
         grid[complex(i, j)] = cell
         if cell == "^":
-            start = complex(i, j)
+            start_position = complex(i, j)
 
 
-def walk_grid(grid, start_position):
-    direction = -1  # Initial direction (facing upward)
-    turn_value = -1j  # Use -1j for clockwise rotation (right turn)
+def walk_grid(grid, start):
+    direction = -1  # Initial direction (upward)
+    turn_clockwise = -1j  # Right turn
 
-    position = start_position
-    visited_and_direction = set()
+    position = start
+    visited_positions = set()
 
-    while (position, direction) not in visited_and_direction and position in grid:
-        visited_and_direction.add((position, direction))
-        new_position = position + direction
-        if grid.get(new_position) == "#":
-            direction *= turn_value
+    while (position, direction) not in visited_positions and position in grid:
+        visited_positions.add((position, direction))
+        next_position = position + direction
+        if grid.get(next_position) == "#":
+            direction *= turn_clockwise
         else:
-            position = new_position
-    return {p for p, _ in visited_and_direction}, (position, direction) in visited_and_direction
+            position = next_position
+
+    visited_cells = {pos for pos, _ in visited_positions}
+    is_cyclic = (position, direction) in visited_positions
+    return visited_cells, is_cyclic
 
 
-walk_grid_result = walk_grid(grid, start)
+# Walk the grid and get results
+visited_cells, is_cyclic = walk_grid(grid, start_position)
 
-visited_and_direction_answer = walk_grid_result[0]
-answer1 = len(walk_grid_result[0])
+# Part A
+answer1 = len(visited_cells)
 print(answer1)
 submit(answer1, part="a", day=6, year=2024)
 
-answer2 = sum(walk_grid(grid | {position: '#'}, start)[
-              1] for position in visited_and_direction_answer if position != start)
+# Part B
+answer2 = sum(walk_grid(grid | {pos: '#'}, start_position)[
+              1] for pos in visited_cells if pos != start_position)
 print(answer2)
 submit(answer2, part="b", day=6, year=2024)
