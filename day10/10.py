@@ -11,10 +11,11 @@ data = get_data(day=10, year=2024).splitlines()
 # data = open("test.txt").read().splitlines()
 
 input_grid = []
+start_points = []
+end_points = []
 
-starting_points = []
-ending_points = []
 
+# Parse input
 
 def set_to_int_min_if_not_int(value):
     # Hacky function to cover for putting dots in the test inputs
@@ -32,38 +33,32 @@ for line in data:
 for i, line in enumerate(input_grid):
     for j, cell in enumerate(line):
         if cell == 0:
-            starting_points += [(i, j)]
+            start_points += [(i, j)]
         if cell == 9:
-            ending_points += [(i, j)]
+            end_points += [(i, j)]
 
 
+# DFS to find all valid paths from start to end
 def find_all_paths(grid, start, end):
     rows, cols = len(grid), len(grid[0])
     paths = []
 
     def dfs(x, y, path, visited):
-        if x < 0 or x >= rows or y < 0 or y >= cols:
+        if not (0 <= x < rows and 0 <= y < cols):
             return
 
         value = grid[x][y]
-
-        # If value is visited
-        if value in visited:
+        if (x, y) in visited or (path and value != grid[path[-1][0]][path[-1][1]] + 1):
             return
 
-        if path:
-            previous_value = grid[path[-1][0]][path[-1][1]]
-            if value <= previous_value or value - previous_value > 1:
-                return
-
         if (x, y) == end:
-            path.append((x, y))
-            paths.append(path.copy())
+            paths.append(path + [(x, y)])
             return
 
         path.append((x, y))
         visited.add((x, y))
 
+        # Explore all four directions
         dfs(x + 1, y, path, visited)
         dfs(x - 1, y, path, visited)
         dfs(x, y + 1, path, visited)
@@ -77,28 +72,29 @@ def find_all_paths(grid, start, end):
     return paths
 
 
+# Part 1
 nines_reached = []
-for start in starting_points:
+for start in start_points:
     nines_reached_for_trailhead = set()
-    for end in ending_points:
+    for end in end_points:
         paths = find_all_paths(input_grid, start, end)
         for path in paths:
             nines_reached_for_trailhead.add(path[-1])
     nines_reached += nines_reached_for_trailhead
-# print(nines_reached)
-print(len(nines_reached))
 
-# for start in starting_points:
-#     print(start)
+part1 = len(nines_reached)
+print(f"Part 1: {part1}")
+submit(part1, part="a", day=10, year=2024)
 
+# Part 2
 
-# files1 = initialize_files(data)
-# files2 = deepcopy(files1)
+total_rating = 0
+for start in start_points:
+    rating = 0
+    for end in end_points:
+        paths = find_all_paths(input_grid, start, end)
+        rating += len(paths)
+    total_rating += rating
 
-# result1 = part1(files1)
-# print(result1)
-# submit(result1, part="a", day=9, year=2024)
-
-# result2 = part2(files2)
-# print(result2)
-# submit(result2, part="b", day=9, year=2024)
+print(f"Part 2: {total_rating}")
+submit(total_rating, part="b", day=10, year=2024)
